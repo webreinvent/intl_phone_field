@@ -24,6 +24,8 @@ class IntlPhoneField extends StatefulWidget {
   final bool readOnly;
   final FormFieldSetter<PhoneNumber>? onSaved;
 
+  final bool useAbbreviatedCountryCodes;
+
   /// {@macro flutter.widgets.editableText.onChanged}
   ///
   /// See also:
@@ -249,6 +251,7 @@ class IntlPhoneField extends StatefulWidget {
     this.keyboardType = TextInputType.phone,
     this.controller,
     this.focusNode,
+    this.useAbbreviatedCountryCodes = false,
     this.decoration = const InputDecoration(),
     this.style,
     this.dropdownTextStyle,
@@ -300,26 +303,27 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
     super.initState();
     _countryList = widget.countries == null
         ? countries
-        : countries
-            .where((country) => widget.countries!.contains(country.code))
-            .toList();
+        : countries.where((country) => widget.countries!.contains(country.code)).toList();
     filteredCountries = _countryList;
     number = widget.initialValue ?? '';
     if (widget.initialCountryCode == null && number.startsWith('+')) {
       number = number.substring(1);
       // parse initial value
-      _selectedCountry = countries.firstWhere((country) => number.startsWith(country.fullCountryCode), orElse: () => _countryList.first);
+      _selectedCountry = countries.firstWhere(
+          (country) => number.startsWith(country.fullCountryCode),
+          orElse: () => _countryList.first);
 
       // remove country code from the initial number value
       number = number.replaceFirst(RegExp("^${_selectedCountry.fullCountryCode}"), "");
     } else {
-      _selectedCountry =
-          _countryList.firstWhere((item) => item.code == (widget.initialCountryCode ?? 'US'), orElse: () => _countryList.first);
+      _selectedCountry = _countryList.firstWhere(
+          (item) => item.code == (widget.initialCountryCode ?? 'US'),
+          orElse: () => _countryList.first);
 
       // remove country code from the initial number value
-      if(number.startsWith('+')){
+      if (number.startsWith('+')) {
         number = number.replaceFirst(RegExp("^\\+${_selectedCountry.fullCountryCode}"), "");
-      }else{
+      } else {
         number = number.replaceFirst(RegExp("^${_selectedCountry.fullCountryCode}"), "");
       }
     }
@@ -336,7 +340,7 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
       if (value is String) {
         validatorMessage = value;
       } else {
-        (value as Future).then((msg) {
+        (value as Future).then((dynamic msg) {
           validatorMessage = msg;
         });
       }
@@ -345,12 +349,13 @@ class _IntlPhoneFieldState extends State<IntlPhoneField> {
 
   Future<void> _changeCountry() async {
     filteredCountries = _countryList;
-    await showDialog(
+    await showDialog<CountryPickerDialog>(
       context: context,
       useRootNavigator: false,
       builder: (context) => StatefulBuilder(
         builder: (ctx, setState) => CountryPickerDialog(
           style: widget.pickerDialogStyle,
+          useAbbreviatedCountryCodes: widget.useAbbreviatedCountryCodes,
           filteredCountries: filteredCountries,
           searchText: widget.searchText,
           countryList: _countryList,

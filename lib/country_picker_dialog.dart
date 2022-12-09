@@ -38,6 +38,7 @@ class PickerDialogStyle {
 }
 
 class CountryPickerDialog extends StatefulWidget {
+  final bool useAbbreviatedCountryCodes;
   final List<Country> countryList;
   final Country selectedCountry;
   final ValueChanged<Country> onCountryChanged;
@@ -47,6 +48,7 @@ class CountryPickerDialog extends StatefulWidget {
 
   CountryPickerDialog({
     Key? key,
+    required this.useAbbreviatedCountryCodes,
     required this.searchText,
     required this.countryList,
     required this.onCountryChanged,
@@ -102,11 +104,15 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                       ? widget.countryList
                           .where((country) => country.dialCode.contains(value))
                           .toList()
-                      : widget.countryList
-                          .where((country) => country.name
-                              .toLowerCase()
-                              .contains(value.toLowerCase()))
-                          .toList();
+                      : widget.useAbbreviatedCountryCodes
+                          ? widget.countryList
+                              .where((country) =>
+                                  country.code.toLowerCase().contains(value.toLowerCase()))
+                              .toList()
+                          : widget.countryList
+                              .where((country) =>
+                                  country.name.toLowerCase().contains(value.toLowerCase()))
+                              .toList();
                   if (this.mounted) setState(() {});
                 },
               ),
@@ -126,7 +132,9 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                       ),
                       contentPadding: widget.style?.listTilePadding,
                       title: Text(
-                        _filteredCountries[index].name,
+                        widget.useAbbreviatedCountryCodes
+                            ? _filteredCountries[index].code
+                            : _filteredCountries[index].name,
                         style: widget.style?.countryNameStyle ??
                             TextStyle(fontWeight: FontWeight.w700),
                       ),
